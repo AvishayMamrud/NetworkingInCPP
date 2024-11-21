@@ -26,13 +26,14 @@
 *.a
 *.lib
 
-# -------------------
-
-*.sln
-*.vcxproj
-*.vcxproj.*
-
 # Executables
 *.exe
 *.out
 *.app
+
+# Visual Studio
+
+*.sln
+*.vcxproj
+*.vcxproj.*
+.vs/
