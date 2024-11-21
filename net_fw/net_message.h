@@ -13,7 +13,7 @@ namespace net {
 	template<typename T>
 	struct message {
 		message_header<T> header;
-		vector<uint8_t> body;
+		std::vector<uint8_t> body;
 
 		size_t size() {
 			return body.size();
