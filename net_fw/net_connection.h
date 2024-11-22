@@ -11,19 +11,22 @@ namespace net {
 			client
 		};
 
-		connection(owner ownerType, asio::io_context& context, asio::ip::tcp::socket sock, ts_deque<message<T>>& qin)
-			: asioContext(context), asioSock(sock), q_inMessages(qin), ownerType(ownerType){}
-		~connection(){}
+		connection(owner ownerType, asio::io_context& context, asio::ip::tcp::socket sock, ts_deque<owned_message<T>>& qin)
+			: ownerType(ownerType), asioContext(context), asioSock(std::move(sock)), q_inMessages(qin) {}
+
+		~connection() {
+			disconnect();
+		}
 
 		void connectToServer(asio::ip::tcp::resolver::results_type& endpoints) {
 			if (ownerType == owner::client) {
 				asio::async_connect(asioSock, endpoints,
-					[](const asio::error_code& ec, const asio::ip::tcp::endpoint& next) {
+					[this](const asio::error_code& ec, const asio::ip::tcp::endpoint& next) {
 						if (!ec) {
-							ReadHeader();
+							readHeader();
 						}
 						else {
-							std::cout << "[" << id << "] Connection to server failed." << std::endl;
+							std::cout << "[" << id_ << "] Connection to server failed." << std::endl;
 						}
 					}
 				);
@@ -43,21 +46,16 @@ namespace net {
 		}
 
 		bool isConnected() {
-			return asioSock.is_open()
+			return asioSock.is_open();
 		}
 
-		void send(message<T>& msg) {
+		void send(const message<T>& msg) {
 			asio::post(asioContext,
 				[this, msg]() {
-					if (!ec) {
-						bool noPending = q_outMessages.empty();
-						q_outMessages.push_back(msg);
-						if (noPending) {
-							WriteHeader();
-						}
-					}
-					else {
-						std::cout << "[" << std::to_string(ownerType) << "] - Sending failed." << std::endl;
+					bool noPending = q_outMessages.empty();
+					q_outMessages.push_back(msg);
+					if (noPending) {
+						writeHeader();
 					}
 				}
 				);
@@ -65,7 +63,7 @@ namespace net {
 
 	private:
 		void readHeader() {
-			asio::async_read(asioSock, asio::buffer(&tmpmsg.header, sizeof(message_header)),
+			asio::async_read(asioSock, asio::buffer(&tmpmsg.header, sizeof(message_header<T>)),
 				[this](const asio::error_code& ec, size_t bytesTransferred) {
 					if (!ec) {
 						if (tmpmsg.header.size > 0) {
@@ -73,12 +71,12 @@ namespace net {
 							readBody();
 						}
 						else {
-							q_inMessages.push_back(std::move(tmpmsg));
-							readHeader();
+							addIncomingMessage();
 						}
 					}
 					else {
 						std::cout << "[] Reading header failed." << std::endl;
+						asioSock.close();
 					}
 				}
 			);
@@ -88,18 +86,18 @@ namespace net {
 			asio::async_read(asioSock, asio::buffer(tmpmsg.body.data(), tmpmsg.body.size()),
 				[this](const asio::error_code& ec, size_t bytesTransferred) {
 					if (!ec) {
-						q_inMessages.push_back(std::move(tmpmsg));
-						readHeader();
+						addIncomingMessage();
 					}
 					else {
 						std::cout << "[] Reading body failed." << std::endl;
+						asioSock.close();
 					}
 				}
 			);
 		}
 
 		void writeHeader() {
-			asio::async_write(asioSock, asio::buffer(&q_outMessages.front().header, sizeof(message_header)),
+			asio::async_write(asioSock, asio::buffer(&q_outMessages.front().header, sizeof(message_header<T>)),
 				[this](const asio::error_code& ec, size_t bytesTransferred) {
 					if (!ec) {
 						if (q_outMessages.front().header.size > 0) {
@@ -107,7 +105,8 @@ namespace net {
 						}
 						else {
 							q_outMessages.pop_front();
-							writeHeader();
+							if(!q_outMessages.empty())
+								writeHeader();
 						}
 					}
 					else {
@@ -135,11 +134,17 @@ namespace net {
 			);
 		}
 
+		void addIncomingMessage() {
+			if(ownerType == connection<T>::owner::server)
+				q_inMessages.push_back({ this->shared_from_this(), tmpmsg });
+			else q_inMessages.push_back({ nullptr, tmpmsg });
+			readHeader();
+		}
 
 		asio::io_context& asioContext;
 		asio::ip::tcp::socket asioSock;
 
-		ts_deque<message<T>>& q_inMessages;
+		ts_deque<owned_message<T>>& q_inMessages;
 		ts_deque<message<T>> q_outMessages;
 		message<T> tmpmsg;
 

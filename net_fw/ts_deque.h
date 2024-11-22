@@ -20,7 +20,7 @@ public:
 		return q.back();
 	}
 	
-	void push_back(T& item) {
+	void push_back(const T& item) {
 		std::scoped_lock lock(locker);
 		q.emplace_back(std::move(item));
 	}
@@ -61,5 +61,5 @@ public:
 	
 private:
 	std::mutex locker;
-	std::unique_ptr<deque<T>> q;
+	std::deque<T> q;
 };
