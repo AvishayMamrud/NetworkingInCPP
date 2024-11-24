@@ -32,8 +32,8 @@ public:
 			case msgType::c_hello_everyone:
 			{
 				message<msgType> new_msg;
-				new_msg.header.id = msgType::goodbye;
-				messageClient(client_conn, new_msg);
+				new_msg.header.id = msgType::s_accept;
+				messageAllClients(new_msg, client_conn);
 				//messageAllClients(new_msg, client_conn);
 			}
 			break;
@@ -46,7 +46,7 @@ int main() {
 	servo.start();
 
 	while (true) {
-		servo.update();
+		servo.blocking_update();
 	}
 	return 0;
 }

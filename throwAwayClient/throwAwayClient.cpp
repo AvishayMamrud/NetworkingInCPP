@@ -66,6 +66,7 @@ int main() {
 
 		for (int i = 0; i < 3; i++)
 			old_key[i] = key[i];
+
 		if (c.isConnected()) {
 			if (!c.incomingMessages().empty()) {
 				message<msgType> msg = c.incomingMessages().pop_front().msg;
@@ -94,9 +95,11 @@ int main() {
 			}
 		}
 		else {
-			std::cout << "quitter." << std::endl;
+			quit = true;
+			std::cout << "connection lost." << std::endl;
 		}
 		
 	}
+	system("pause");
 	return 0;
 }

@@ -37,3 +37,11 @@
 *.vcxproj
 *.vcxproj.*
 .vs/
+x64/
+.log
+.recipe
+.lastbuildstate
+.idb
+.pdb
+.tlog
+.ilk

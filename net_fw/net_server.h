@@ -71,11 +71,21 @@ namespace net {
 			}
 		}
 
-		void update(uint32_t max_msg_count = -1) {
+		void blocking_update(uint32_t max_msg_count = -1) { // the default maximun is the max_value of an unsigned int
+			uint32_t readCount = 0;
+			while (readCount < max_msg_count) {
+				owned_message<T> om = std::move(q_messagesIn.blocking_pop_front());
+				onMessage(om.con, om.msg);
+				readCount++;
+			}
+		}
+
+		void update(uint32_t max_msg_count = -1) { // the default maximun is the max_value of an unsigned int
 			uint32_t readCount = 0;
 			while (readCount < max_msg_count && !q_messagesIn.empty()) {
 				owned_message<T> om = std::move(q_messagesIn.pop_front());
 				onMessage(om.con, om.msg);
+				readCount++;
 			}
 		}
 
