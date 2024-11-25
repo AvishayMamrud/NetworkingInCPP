@@ -44,7 +44,7 @@ namespace net {
 						);
 						if (onClientConnect(new_conn)) {
 							clients.push_back(new_conn);
-							clients.back()->connectToClient(idCounter++);
+							clients.back()->connectToClient(this, idCounter++);
 							std::cout << "[SERVER] Client accepted." << std::endl;
 						}
 						else {
@@ -88,6 +88,8 @@ namespace net {
 				readCount++;
 			}
 		}
+
+		virtual void onClientValidation(std::shared_ptr<connection<T>> client){}
 
 		virtual bool onClientConnect(std::shared_ptr<connection<T>> client) { return false; }
 

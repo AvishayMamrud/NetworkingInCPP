@@ -6,7 +6,7 @@ enum class msgType : uint32_t {
 	s_accept,
 	c_hello_everyone,
 	c_hello_server,
-	s_hey_mui_cliente,
+	s_hey_muy_caliente,
 	goodbye
 };
 
@@ -25,7 +25,7 @@ public:
 			case msgType::c_hello_server:
 			{
 				message<msgType> new_msg;
-				new_msg.header.id = msgType::s_hey_mui_cliente;
+				new_msg.header.id = msgType::s_hey_muy_caliente;
 				messageClient(client_conn, new_msg);
 			}
 			break;

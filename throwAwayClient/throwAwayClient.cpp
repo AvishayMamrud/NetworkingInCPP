@@ -7,7 +7,7 @@ enum class msgType : uint32_t {
 	s_accept,
 	c_hello_everyone,
 	c_hello_server,
-	s_hey_mui_cliente,
+	s_hey_muy_caliente,
 	goodbye
 };
 
@@ -23,7 +23,6 @@ public:
 				std::cout << "xdfcgvghkj" << std::endl;
 				message<msgType> msg;
 				msg.header.id = msgType::c_hello_server;
-				//msg << a;
 				send(msg);
 			}
 			break;
@@ -31,7 +30,6 @@ public:
 			{
 				message<msgType> msg;
 				msg.header.id = msgType::c_hello_everyone;
-				//msg << b;
 				send(msg);
 			}
 			break;
@@ -77,11 +75,8 @@ int main() {
 					std::cout << "amazing" << std::endl;
 				}
 				break;
-				case msgType::s_hey_mui_cliente:
+				case msgType::s_hey_muy_caliente:
 				{
-					//message<msgType> msg;
-					//int a;
-					//msg >> a;
 					std::cout << "received reply." << std::endl;
 				}
 				break;
@@ -100,6 +95,5 @@ int main() {
 		}
 		
 	}
-	system("pause");
 	return 0;
 }
